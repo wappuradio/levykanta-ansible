@@ -1,0 +1,34 @@
+- name: install packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    force_apt_get: True
+    cache_valid_time: 3600
+    install_recommends: False
+  loop:
+  - g++
+  - make
+  - libboost-program-options-dev
+  - libsndfile1-dev
+  - libpng-dev
+  - libpng++-dev
+
+- name: download wav2png sources
+  git:
+    repo: https://github.com/beschulz/wav2png
+    dest: /usr/src/wav2png
+    update: no
+
+- name: compile wav2png
+  command:
+    chdir: /usr/src/wav2png/build
+    cmd: make all
+    creates: /usr/src/wav2png/bin/Linux/wav2png
+
+- name: copy wav2png
+  copy:
+    remote_src: true
+    src: /usr/src/wav2png/bin/Linux/wav2png
+    dest: /usr/local/bin/wav2png
+    mode: '755'
+

@@ -1,0 +1,51 @@
+- name: Install node8 repo
+  copy:
+    dest: /etc/apt/sources.list.d/node8.list
+    content: |
+      deb https://deb.nodesource.com/node_8.x {{ansible_distribution_release}} main
+      deb-src https://deb.nodesource.com/node_8.x {{ansible_distribution_release}} main
+  register: node8_repo
+
+- name: add nodesource gpg key
+  apt_key:
+    url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+    state: present
+
+- name: apt update
+  command: apt update
+  when: node8_repo.changed
+
+- name: Set apt preferences for node8
+  copy:
+    dest: /etc/apt/preferences.d/node8
+    content: |
+      Package: node* npm
+      Pin: origin repo.idle.cc
+      Pin-Priority: 1
+
+      Package: node* npm
+      Pin: origin deb.debian.org
+      Pin-Priority: 1
+      
+      Package: node* npm
+      Pin: origin security.debian.org
+      Pin-Priority: 1
+
+      Package: node* npm
+      Pin: origin deb.nodesource.com
+      Pin-Priority: 500
+
+- name: install packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    force_apt_get: True
+    cache_valid_time: 3600
+    install_recommends: False
+  loop:
+  - gcc
+  - g++
+  - git
+  - make
+  - nodejs
+
