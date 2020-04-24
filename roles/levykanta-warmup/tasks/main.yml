@@ -1,0 +1,113 @@
+- name: Install node8 repo
+  copy:
+    dest: /etc/apt/sources.list.d/node8.list
+    content: |
+      deb https://deb.nodesource.com/node_8.x {{ansible_distribution_release}} main
+      deb-src https://deb.nodesource.com/node_8.x {{ansible_distribution_release}} main
+  register: node8_repo
+
+- name: add nodesource gpg key
+  apt_key:
+    url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+    state: present
+
+- name: apt update
+  command: apt update
+  when: node8_repo.changed
+
+- name: Set apt preferences for node8
+  copy:
+    dest: /etc/apt/preferences.d/node8
+    content: |
+      Package: node* npm
+      Pin: origin repo.idle.cc
+      Pin-Priority: 1
+
+      Package: node* npm
+      Pin: origin deb.debian.org
+      Pin-Priority: 1
+      
+      Package: node* npm
+      Pin: origin security.debian.org
+      Pin-Priority: 1
+
+      Package: node* npm
+      Pin: origin deb.nodesource.com
+      Pin-Priority: 500
+
+- name: install packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    force_apt_get: True
+    cache_valid_time: 3600
+    install_recommends: False
+  loop:
+  - gcc
+  - g++
+  - git
+  - make
+  - nodejs
+
+- name: ensure warmup user exists
+  user:
+    name: "{{ warmup_user }}"
+    state: present
+    create_home: true
+  register: warmup_user_info
+
+- name: clone warmup repo
+  git:
+    repo: "{{ warmup_repo }}"
+    dest: "{{ warmup_user_info.home }}/warmup"
+  become: true
+  become_user: "{{ warmup_user }}"
+  register: warmup_repo
+
+- name: install warmup
+  command:
+    chdir: "{{ warmup_user_info.home }}/warmup"
+    cmd: "npm install"
+  become: true
+  become_user: "{{ warmup_user }}"
+  when: warmup_repo.changed
+
+- name: create warmup config
+  template:
+    src: config.js.j2
+    dest: "{{ warmup_user_info.home }}/warmup/config.js"
+  become: true
+  become_user: "{{ warmup_user }}"
+
+- name: create warmup.service
+  copy:
+    dest: /etc/systemd/system/warmup.service
+    content: |
+      [Unit]
+      Description=MPD Frontend
+
+      Requires=mpd.service
+      After=mpd.service
+
+      StartLimitIntervalSec=0
+      StartLimitBurst=0
+
+      [Service]
+      User={{ warmup_user }}
+      WorkingDirectory={{ warmup_user_info.home }}
+      ExecStart=/usr/bin/node warmup
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+  register: warmup_service
+
+- name: reload systemd
+  command: systemctl daemon-reload
+  when: warmup_service.changed
+
+- name: start warmup
+  systemd:
+    name: warmup.service
+    state: started
+    enabled: true

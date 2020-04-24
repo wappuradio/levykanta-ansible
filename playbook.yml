@@ -1,0 +1,9 @@
+---
+
+- hosts: levykanta
+  roles:
+    - levykanta-nfsmount
+    - levykanta-pulseaudio
+    - levykanta-mpd
+    - levykanta-warmup
+
