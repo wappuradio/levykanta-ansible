@@ -16,13 +16,21 @@
   become_user: "{{ warmup_user }}"
   register: warmup_repo
 
-- name: install warmup
+- name: install warmup server
   command:
     chdir: "{{ warmup_user_info.home }}/warmup"
     cmd: "npm install"
+    creates: "{{ warmup_user_info.home }}/warmup/node_modules"
   become: true
   become_user: "{{ warmup_user }}"
-  when: warmup_repo.changed
+
+- name: install warmup client
+  command:
+    chdir: "{{ warmup_user_info.home }}/warmup"
+    cmd: "node_modules/.bin/bower install"
+    creates: "{{ warmup_user_info.home }}/warmup/bower_components"
+  become: true
+  become_user: "{{ warmup_user }}"
 
 - name: create warmup config
   template:
