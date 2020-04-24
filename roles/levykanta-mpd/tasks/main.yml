@@ -28,6 +28,13 @@
     src: mpd.conf.j2
     dest: /etc/mpd.conf
 
+- name: Add mpd to pulse groups
+  user:
+    name: mpd
+    groups:
+    - audio
+    - pulse-access
+
 - name: start mpd
   systemd:
     name: mpd.service
