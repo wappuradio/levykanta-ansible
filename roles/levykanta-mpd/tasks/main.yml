@@ -1,12 +1,27 @@
+- name: Install kaliko stable-backports repo
+  copy:
+    dest: /etc/apt/sources.list.d/kaliko.list
+    content: |
+      deb https://deb.kaliko.me/debian-backports/ stable-backports main
+  register: kaliko_repo
+
+- name: add kaliko gpg key
+  apt_key:
+    url: https://media.kaliko.me/kaliko.gpg
+    state: present
+
+- name: apt update
+  command: apt update
+  when: kaliko_repo.changed
+
 - name: install packages
   apt:
-    pkg: "{{ item }}"
+    pkg: mpd
     state: present
     force_apt_get: True
     cache_valid_time: 3600
     install_recommends: False
-  loop:
-  - mpd
+    default_release: stable-backports
 
 - name: copy mpd template
   template:
