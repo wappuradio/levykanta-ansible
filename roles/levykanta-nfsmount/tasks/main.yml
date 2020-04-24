@@ -1,0 +1,22 @@
+- name: install NFS client
+  apt:
+    pkg: "nfs-common"
+    state: present
+    force_apt_get: True
+    cache_valid_time: 3600
+    install_recommends: False
+
+- name: "Add mount to fstab"
+  lineinfile:
+    path: /etc/fstab
+    line: "10.1.0.10:/srv/nfs/music /var/lib/mpd/music/ nfs defaults 0 0"
+  register: fstab
+
+- name: Reload systemd to generate .mount
+  command: systemctl daemon-reload
+  when: fstab.changed
+
+- name: Mount music
+  systemd: 
+    state: started
+    name: var-lib-mpd-music.mount

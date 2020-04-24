@@ -1,0 +1,44 @@
+- name: install packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    force_apt_get: True
+    cache_valid_time: 3600
+    install_recommends: False
+  loop:
+  - pulseaudio
+  - pulseaudio-utils
+
+- name: Copy configs
+  copy:
+    src: pulse
+    dest: /etc/
+  notify: restart_pulseaudio
+
+- name: Create pulseaudio.service
+  copy:
+    dest: /etc/systemd/system/pulseaudio.service
+    content: |
+      [Unit]
+      Description=PulseAudio Daemon
+       
+      [Install]
+      WantedBy=multi-user.target
+       
+      [Service]
+      Type=simple
+      PrivateTmp=true
+      ExecStart=/usr/bin/pulseaudio --system --realtime --disallow-exit --no-cpu-limit
+  register: pulseaudio_service
+  notify: restart_pulseaudio
+
+- name: reload systemd
+  command: systemctl daemon-reload
+  when: pulseaudio_service.changed
+
+- name: start pulseaudio
+  systemd:
+    name: pulseaudio.service
+    state: started
+    enabled: true
+
