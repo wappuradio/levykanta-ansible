@@ -8,6 +8,12 @@
   loop:
   - nginx
 
+- name: copy nginx.conf
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify: restart_nginx
+
 - name: copy nginx default site
   template:
     src: default.j2
