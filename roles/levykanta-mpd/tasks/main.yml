@@ -1,0 +1,20 @@
+- name: install packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    force_apt_get: True
+    cache_valid_time: 3600
+    install_recommends: False
+  loop:
+  - mpd
+
+- name: copy mpd template
+  template:
+    src: mpd.conf.j2
+    dest: /etc/mpd.conf
+
+- name: start mpd
+  systemd:
+    name: mpd.service
+    state: started
+    enabled: true
