@@ -56,6 +56,7 @@
       User={{ warmup_user }}
       WorkingDirectory={{ warmup_user_info.home }}
       ExecStart=/usr/bin/node warmup
+      Environment=LD_LIBRARY_PATH=/usr/local/lib
       Restart=always
 
       [Install]

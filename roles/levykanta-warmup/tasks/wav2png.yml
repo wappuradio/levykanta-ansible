@@ -1,34 +1,54 @@
-- name: install packages
-  apt:
-    pkg: "{{ item }}"
-    state: present
-    force_apt_get: True
-    cache_valid_time: 3600
-    install_recommends: False
-  loop:
-  - g++
-  - make
-  - libboost-program-options-dev
-  - libsndfile1-dev
-  - libpng-dev
-  - libpng++-dev
+#- name: install packages
+#  apt:
+#    pkg: "{{ item }}"
+#    state: present
+#    force_apt_get: True
+#    cache_valid_time: 3600
+#    install_recommends: False
+#  loop:
+#  - g++
+#  - make
+#  - libboost-program-options-dev
+#  - libsndfile1-dev
+#  - libpng-dev
+#  - libpng++-dev
+#  - libboost-program-options1.67.0
+#
+#- name: download wav2png sources
+#  git:
+#    repo: https://github.com/beschulz/wav2png
+#    dest: /usr/src/wav2png
+#    update: no
+#
+#- name: compile wav2png
+#  command:
+#    chdir: /usr/src/wav2png/build
+#    cmd: make all
+#    creates: /usr/src/wav2png/bin/Linux/wav2png
+#
+#- name: copy wav2png
+#  copy:
+#    remote_src: true
+#    src: /usr/src/wav2png/bin/Linux/wav2png
+#    dest: /usr/local/bin/wav2png
+#    mode: '755'
 
-- name: download wav2png sources
-  git:
-    repo: https://github.com/beschulz/wav2png
-    dest: /usr/src/wav2png
-    update: no
+# hack
+# wav2png does not want to play nicely with libpng16, even if tricked with a symlink
+# for now, the binary built in a debian:8 container and the missing libraries included:
 
-- name: compile wav2png
-  command:
-    chdir: /usr/src/wav2png/build
-    cmd: make all
-    creates: /usr/src/wav2png/bin/Linux/wav2png
+- name: copy libpng12.so.0
+  copy:
+    src: libpng12.so.0
+    dest: /usr/local/lib/libpng12.so.0
+
+- name: copy libboost_program_options.so.1.55.0
+  copy:
+    src: libboost_program_options.so.1.55.0
+    dest: /usr/local/lib/libboost_program_options.so.1.55.0
 
 - name: copy wav2png
   copy:
-    remote_src: true
-    src: /usr/src/wav2png/bin/Linux/wav2png
+    src: wav2png
     dest: /usr/local/bin/wav2png
-    mode: '755'
 
