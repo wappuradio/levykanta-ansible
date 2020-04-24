@@ -51,10 +51,10 @@ load-module module-rescue-streams
 load-module module-always-sink
 
 ### Automatically suspend sinks/sources that become idle for too long
-load-module module-suspend-on-idle
+#load-module module-suspend-on-idle
 
 ### Enable positioned event sounds
-load-module module-position-event-sounds
+#load-module module-position-event-sounds
  
-load-module module-native-protocol-tcp auth-anonymous=1
-load-module module-zeroconf-publish
+#load-module module-native-protocol-tcp auth-anonymous=1
+#load-module module-zeroconf-publish
