@@ -1,0 +1,29 @@
+- name: install packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    force_apt_get: True
+    cache_valid_time: 3600
+    install_recommends: False
+  loop:
+  - nginx
+
+- name: copy nginx default site
+  template:
+    src: default.j2
+    dest: /etc/nginx/sites-available/default
+  notify: restart_nginx
+
+- name: enable default site
+  file:
+    src: /etc/nginx/sites-available/default
+    dest: /etc/nginx/sites-enabled/default
+    state: link
+  notify: restart_nginx
+
+- name: start nginx
+  systemd:
+    name: nginx.service
+    state: started
+    enabled: true
+
