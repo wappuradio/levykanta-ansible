@@ -9,14 +9,27 @@
 - name: "Add mount to fstab"
   lineinfile:
     path: /etc/fstab
-    line: "10.1.0.10:/srv/nfs/music /var/lib/mpd/music/ nfs defaults 0 0"
-  register: fstab
+    regexp: "^[^ ]+ /var/lib/mpd/music/? .*"
+    line: "10.1.0.10:/srv/nfs/music /var/lib/mpd/music nfs defaults,nofail 0 0"
+  register: fstab_music
+
+- name: "Add mount to fstab"
+  lineinfile:
+    path: /etc/fstab
+    regexp: "^[^ ]+ /var/lib/mpd/playlists/? .*"
+    line: "10.1.0.10:/srv/nfs/playlists /var/lib/mpd/playlists nfs defaults,nofail 0 0"
+  register: fstab_playlists
 
 - name: Reload systemd to generate .mount
   command: systemctl daemon-reload
-  when: fstab.changed
+  when: fstab_music.changed or fstab_playlists.changed
 
 - name: Mount music
   systemd: 
     state: started
     name: var-lib-mpd-music.mount
+
+- name: Mount playlists
+  systemd: 
+    state: started
+    name: var-lib-mpd-playlists.mount
