@@ -1,2 +1,2 @@
 [levykanta]
-iso.idm.wappuradio.fi
+localhost ansible_connection=local
