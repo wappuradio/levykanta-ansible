@@ -51,3 +51,11 @@
     name: mpd.service
     state: started
     enabled: true
+
+- name: create hourly DB sync cronjob
+  copy:
+    content: |
+      #!/usr/bin/bash
+      mpc update
+    dest: /etc/cron.hourly/mpd-update
+    mode: 755
