@@ -1,10 +1,10 @@
 ---
 
-- hosts: levykanta
+- hosts: localhost
   roles:
     - levykanta-nfsmount
     - levykanta-pulseaudio
     - levykanta-mpd
-    - levykanta-warmup
+    - levykanta-warmup-podman
     - levykanta-nginx
 
