@@ -5,6 +5,17 @@
       deb https://deb.kaliko.me/debian-backports/ stable-backports main
   register: kaliko_repo
 
+- name: install gpg
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    force_apt_get: True
+    cache_valid_time: 3600
+    install_recommends: False
+  loop:
+    - gpg
+    - gpg-agent
+
 - name: add kaliko gpg key
   apt_key:
     url: https://media.kaliko.me/kaliko.gpg
