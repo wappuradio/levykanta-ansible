@@ -22,13 +22,14 @@
       [Unit]
       Description=PulseAudio Daemon
        
-      [Install]
-      WantedBy=multi-user.target
-       
       [Service]
+      Restart=always
       Type=simple
       PrivateTmp=true
       ExecStart=/usr/bin/pulseaudio --system --realtime --disallow-exit --no-cpu-limit
+       
+      [Install]
+      WantedBy=multi-user.target
   register: pulseaudio_service
   notify: restart_pulseaudio
 
