@@ -1,0 +1,62 @@
+
+- name: install packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    force_apt_get: True
+    cache_valid_time: 3600
+    install_recommends: False
+  loop:
+  - podman
+
+- name: create warmup config
+  template:
+    src: config.js.j2
+    dest: "/etc/warmup.conf"
+
+- name: create warmup.service
+  copy:
+    dest: /etc/systemd/system/warmup.service
+    content: |
+      [Unit]
+      Description=MPD Frontend
+
+      Requires=mpd.service
+      After=mpd.service
+
+      StartLimitIntervalSec=0
+      StartLimitBurst=0
+
+      [Service]
+      Environment=PODMAN_SYSTEMD_UNIT=%n
+      Restart=always
+      TimeoutStopSec=5
+      ExecStartPre=/bin/rm -f %t/container-warmup.pid %t/container-warmup.ctr-id
+      ExecStop=/usr/bin/podman stop --ignore --cidfile %t/container-warmup.ctr-id -t 10
+      ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/container-warmup.ctr-id
+      PIDFile=%t/container-warmup.pid
+      Type=forking
+
+      ExecStart=/usr/bin/podman run \
+        --conmon-pidfile %t/container-warmup.pid \
+        --cidfile %t/container-warmup.ctr-id \
+        --cgroups=no-conmon \
+        --replace --name warmup -d \
+        --net=host \
+        -v /etc/warmup.conf:/home/warmup/config.js \
+        -v /var/lib/mpd:/var/lib/mpd \
+        registry.acl.fi/public/warmup:latest
+
+      [Install]
+      WantedBy=multi-user.target
+  register: warmup_service
+
+- name: reload systemd
+  command: systemctl daemon-reload
+  when: warmup_service.changed
+
+- name: start warmup
+  systemd:
+    name: warmup.service
+    state: started
+    enabled: true
