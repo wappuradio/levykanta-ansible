@@ -46,8 +46,8 @@
       [Unit]
       Description=MPD Frontend
 
-      Requires=mpd.service
-      After=mpd.service
+      Requires=mpd.service var-lib-mpd-music.mount
+      After=mpd.service var-lib-mpd-music.mount
 
       StartLimitIntervalSec=0
       StartLimitBurst=0
