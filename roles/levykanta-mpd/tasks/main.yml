@@ -46,6 +46,14 @@
     - audio
     - pulse-access
 
+- name: Ensure that NFS is mounted before mpd starts
+  copy:
+    dest: /etc/systemd/system/mpd.service.d/override.conf
+    content: |
+      [Unit]
+      After=var-lib-mpd-music.mount
+      Requires=var-lib-mpd-music.mount
+
 - name: start mpd
   systemd:
     name: mpd.service
